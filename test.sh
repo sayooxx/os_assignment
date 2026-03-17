@@ -1,32 +1,20 @@
-#!/bin/bash
+name: Run SJF Tests
 
-gcc sjf.c -o sjf
+on: [push, pull_request]
 
-pass=true
+jobs:
+  test:
+    runs-on: ubuntu-latest
 
-echo "Running visible test cases..."
+    steps:
+    - uses: actions/checkout@v3
+    - name: Compile
+      run: gcc sjf.c -o sjf
 
-for i in testcases/input*.txt
-do
-    num=$(basename $i | grep -o '[0-9]*')
-    
-    ./sjf < $i > result.txt
-    
-    diff -w -B result.txt testcases/output$num.txt > /dev/null
-    
-    if [ $? -eq 0 ]; then
-        echo "Test $num Passed ✅"
-    else
-        echo "Test $num Failed ❌"
-        pass=false
-    fi
-done
-
-
-if [ "$pass" = true ]; then
-    echo "All tests passed 🎉"
-    exit 0
-else
-    echo "Some tests failed ❌"
-    exit 1
-fi
+    - name: Run Test Cases
+      run: |
+        for i in 1 2
+        do
+          ./sjf < testcases/input$i.txt > out$i.txt
+          diff out$i.txt testcases/output$i.txt
+        done
